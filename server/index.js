@@ -3,6 +3,7 @@ import express from 'express';
 import mongoose from 'mongoose';
 import dotenv from 'dotenv';
 dotenv.config();
+import UfcFighter from './models/UfcFighter.js';
 
 const app = express();
 app.use(express.json());
@@ -15,41 +16,45 @@ if (connection){
 }
 };
 
-const UFC_FIGHTERS = []
+
 
 app.get("/health", (req, res) => {
     res.status(200).json({ message: "Server is running" });
 });
 
-app.get("/ufc-fighters", (req, res) => {
+app.get("/ufc-fighters", async(req, res) => {
+
+    const ufcFighters = await UfcFighter.find();
+
     return res.status(200).json({
         success: true,
-        data: UFC_FIGHTERS,
+        data: ufcFighters,
         message: "UFC Fighters fetched successfully"
     });
 });
 
-app.post("/ufc-fighters", (req, res) => {
+
+app.post("/ufc-fighters", async(req, res) => {
     const { name, city, division, title, thumbnail } = req.body;
+    const newUfcFighters = new UfcFighter({
+         name,
+         city, 
+         division, 
+         title, 
+         thumbnail
+    });
 
-    const newUfcFighters = {
-        name,
-        city,
-        division,
-        title,
-        thumbnail
-    };
+    const savedUfcFighter = await newUfcFighters.save();
 
-    UFC_FIGHTERS.push(newUfcFighters);
     return res.status(201).json({
         success:true,
-        data:newUfcFighters,
+        data:savedUfcFighter,
         message:"UFC Fighter has been added successfully"
-    })
-
+    });
 });
 
-const PORT = 5002;
+
+const PORT = process.env.PORT || 5002;
 
 app.listen(PORT, () => {
     console.log(`Server is running on ${PORT}`);
